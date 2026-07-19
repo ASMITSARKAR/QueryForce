@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QueryForce AI Cockpit</title>
+    <!-- Cache buster so the user gets the new CSS immediately! -->
+    <link href="/ui/tailwind.min.css?v=3" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+        
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chat-bubble-ai {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .chat-bubble-user {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4);
+        }
+        
+        .animated-bg {
+            background: linear-gradient(-45deg, #020617, #0f172a, #1e1b4b, #020617);
+            background-size: 400% 400%;
+            animation: gradient-x 15s ease infinite;
+        }
+    </style>
+</head>
+<body class="animated-bg text-slate-200 h-screen w-screen overflow-hidden flex flex-col relative">
+    
+    <!-- Decorative Ambient Glows -->
+    <div class="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] pointer-events-none -z-10 mix-blend-screen"></div>
+    <div class="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[150px] pointer-events-none -z-10 mix-blend-screen"></div>
+
+    <!-- Navbar -->
+    <header class="glass-panel px-6 py-4 flex justify-between items-center shrink-0 z-10 border-b border-slate-800/50">
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-blue-500/30">QF</div>
+            <div>
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight">QueryForce</h1>
+                <p class="text-[11px] font-medium text-slate-400 tracking-widest uppercase mt-0.5">Intelligence Engine v1.0</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-5">
+            <button id="btn-logout" class="text-sm font-medium px-4 py-2 rounded-lg glass-panel hover:bg-slate-800/50 text-slate-300 hover:text-white transition-all flex items-center gap-2 border border-slate-700/50">
+                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                Active Session
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="flex-1 flex overflow-hidden p-6 gap-6 z-10 w-full h-full">
+        
+        <!-- Left Panel: Chat Interface -->
+        <main class="flex-1 flex flex-col min-w-0 glass-panel rounded-3xl overflow-hidden shadow-2xl relative">
+            
+            <!-- Output Area -->
+            <div class="flex-1 overflow-y-auto p-6 space-y-8 scroll-smooth pb-32" id="chat-history">
+                <!-- Welcome Message -->
+                <div class="flex items-end gap-4 animate-fade-in-up">
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/30 shadow-inner">
+                        <svg class="w-5 h-5 drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <div class="chat-bubble-ai rounded-3xl rounded-bl-sm px-6 py-5 max-w-[85%]">
+                        <p class="text-slate-200 text-lg font-light leading-relaxed">Welcome to the QueryForce Engine. <br/><span class="text-slate-400 text-base">What data would you like to explore today?</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area (Floating at bottom) -->
+            <div class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent">
+                <form id="query-form" class="relative max-w-4xl mx-auto group">
+                    <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl blur opacity-30 group-focus-within:opacity-100 transition duration-500"></div>
+                    <input type="text" id="query-input" autocomplete="off"
+                        class="relative w-full bg-slate-900 border border-slate-700/50 rounded-2xl pl-6 pr-16 py-4 text-slate-100 placeholder-slate-500 focus:outline-none text-lg shadow-2xl"
+                        placeholder="Ask a question about your database...">
+                    <button type="submit" id="query-submit" class="absolute right-3 top-3 bottom-3 aspect-square bg-blue-600 hover:bg-blue-500 text-white rounded-xl flex items-center justify-center transition-all hover:scale-105 hover:shadow-[0_0_15px_rgba(37,99,235,0.5)]">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </button>
+                </form>
+            </div>
+        </main>
+
+        <!-- Right Panel: SQL & Data (Fixed width, does not shrink) -->
+        <aside class="w-[500px] flex flex-col gap-6 shrink-0 h-full">
+            
+            <!-- Top Right: SQL Inspector -->
+            <div class="flex-1 glass-panel rounded-3xl overflow-hidden flex flex-col shadow-2xl relative group">
+                <div class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 pointer-events-none"></div>
+                <div class="px-5 py-4 border-b border-slate-700/50 flex justify-between items-center bg-slate-900/40 shrink-0">
+                    <h2 class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                        Generated AST
+                    </h2>
+                    <div id="status-badges" class="flex gap-2 transition-opacity duration-300 opacity-0">
+                        <span id="badge-ast" class="px-2.5 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.1)]">VALID</span>
+                        <span id="badge-conf" class="px-2.5 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase bg-blue-500/10 text-blue-400 border border-blue-500/30">RAG</span>
+                    </div>
+                </div>
+                <div class="flex-1 p-5 overflow-y-auto relative">
+                    <pre id="sql-output" class="font-mono text-sm text-slate-500 whitespace-pre-wrap break-all leading-relaxed">Awaiting intelligence pipeline...</pre>
+                </div>
+            </div>
+
+            <!-- Bottom Right: Raw Data Table -->
+            <div class="flex-1 glass-panel rounded-3xl overflow-hidden flex flex-col shadow-2xl relative">
+                <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-cyan-500/5 pointer-events-none"></div>
+                <div class="px-5 py-4 border-b border-slate-700/50 flex justify-between items-center bg-slate-900/40 shrink-0 z-10">
+                    <h2 class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                        Dataset View
+                    </h2>
+                    <button id="btn-export" class="hidden text-xs text-blue-400 hover:text-white font-semibold flex items-center gap-1.5 transition-colors bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/20">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Export
+                    </button>
+                </div>
+                <div class="flex-1 overflow-auto relative p-1">
+                    <table id="data-table" class="w-full text-sm text-left hidden border-separate border-spacing-y-1">
+                        <thead id="data-table-head" class="text-xs text-slate-400 uppercase sticky top-0 bg-slate-900/90 backdrop-blur-sm z-10 shadow-sm">
+                        </thead>
+                        <tbody id="data-table-body" class="text-slate-300 font-mono">
+                        </tbody>
+                    </table>
+                    <div id="data-empty" class="absolute inset-0 flex items-center justify-center text-slate-500 font-medium">Dataset is empty</div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- T5: LocalStorage Vault Auth Modal -->
+    <div id="auth-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-xl flex items-center justify-center z-50 transition-opacity">
+        <div class="glass-panel border border-slate-700/50 rounded-[2rem] p-10 w-full max-w-lg shadow-2xl relative overflow-hidden">
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-blue-600/30 rounded-full blur-[50px]"></div>
+            <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-purple-600/30 rounded-full blur-[50px]"></div>
+            
+            <div class="text-center mb-8 relative z-10">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 mx-auto flex items-center justify-center mb-6 shadow-lg shadow-blue-500/30">
+                    <svg class="w-8 h-8 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </div>
+                <h2 class="text-3xl font-bold text-white mb-2 tracking-tight">Secure Connection</h2>
+                <p class="text-slate-400">Provide your engine credentials to proceed.</p>
+            </div>
+            <form id="auth-form" class="space-y-6 relative z-10">
+                <div>
+                    <input type="password" id="api-key-input" required autocomplete="off"
+                        class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl px-5 py-4 text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 text-center tracking-widest text-xl shadow-inner font-mono transition-all"
+                        placeholder="••••••••••••••••">
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold rounded-2xl px-5 py-4 transition-all shadow-[0_0_20px_rgba(79,70,229,0.4)] hover:shadow-[0_0_30px_rgba(79,70,229,0.6)] flex items-center justify-center gap-2 text-lg">
+                    Initialize Link
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Live JS Consumer -->
+    <script src="/ui/app.js"></script>
+</body>
+</html>

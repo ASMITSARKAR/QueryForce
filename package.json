@@ -1,0 +1,23 @@
+{
+  "name": "queryforce",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:css": "tailwindcss -i ui/input.css -o ui/tailwind.min.css --minify"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@microsoft/fetch-event-source": "^2.0.1",
+    "esbuild": "^0.28.1"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.5.4",
+    "postcss": "^8.5.20",
+    "tailwindcss": "^4.3.3"
+  }
+}

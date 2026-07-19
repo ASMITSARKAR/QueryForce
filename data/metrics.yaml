@@ -1,0 +1,19 @@
+AOV:
+  aliases: ["aov", "average order value", "average cart size"]
+  rule: "Average Order Value (AOV) is defined as SUM(total_amount) / COUNT(id) from the orders table."
+
+Active Customer:
+  aliases: ["active customer", "active user"]
+  rule: "An Active Customer is a customer who has placed at least one order where status != 'Cancelled'."
+
+Gross Revenue:
+  aliases: ["gross revenue", "total revenue", "revenue"]
+  rule: "Gross Revenue is the SUM(total_amount) of all orders with status = 'Delivered'."
+
+Repeat Purchase Rate:
+  aliases: ["repeat purchase rate", "returning customer rate"]
+  rule: "Repeat Purchase Rate is (Count of customers with > 1 order) / (Total count of customers)."
+
+Top Product:
+  aliases: ["top product", "best seller", "best selling product"]
+  rule: "Top Product is determined by the SUM(quantity) sold in order_items, not by revenue."

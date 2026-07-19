@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  queryforce-engine:
+    build: .
+    container_name: queryforce_engine
+    env_file: .env
+    environment:
+      - TELEMETRY_DB_PATH=data/telemetry/telemetry.db
+    ports:
+      - "8000:8000"
+    volumes:
+      # Named volume for telemetry (WAL needs persistent rw access on native FS)
+      - telemetry_wal_data:/app/data/telemetry
+      # Bind mounts for seed/static data
+      - ./data/chroma_persist:/app/data/chroma_persist
+      - ./data/analytics.db:/app/data/analytics.db:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-H", "X-API-Key: ${QUERYFORCE_API_KEY}", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  telemetry_wal_data:
