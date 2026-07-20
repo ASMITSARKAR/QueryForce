@@ -58,7 +58,7 @@ COPY data/ /app/data/
 
 # Ensure data directories exist and ingest the schema to populate ChromaDB
 RUN mkdir -p /app/data/chroma_persist && \
-    python scripts/ingest_schema.py && \
+    GROQ_API_KEY="dummy" QUERYFORCE_API_KEY="dummy" python scripts/ingest_schema.py && \
     chown -R appuser:appuser /app/data
 
 USER appuser
