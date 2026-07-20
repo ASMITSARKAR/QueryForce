@@ -52,11 +52,13 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser
 # Copy application source
 COPY src/ /app/src/
 COPY ui/ /app/ui/
+COPY scripts/ /app/scripts/
 # Copy the data folder (including analytics.db and metrics.yaml)
 COPY data/ /app/data/
 
-# Ensure data directories exist and are owned by appuser
+# Ensure data directories exist and ingest the schema to populate ChromaDB
 RUN mkdir -p /app/data/chroma_persist && \
+    python scripts/ingest_schema.py && \
     chown -R appuser:appuser /app/data
 
 USER appuser
