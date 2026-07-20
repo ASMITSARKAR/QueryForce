@@ -7,12 +7,12 @@ Active Customer:
   rule: "An Active Customer is a customer who has placed at least one order where status != 'Cancelled'."
 
 Gross Revenue:
-  aliases: ["gross revenue", "total revenue", "revenue"]
+  aliases: ["gross revenue", "total revenue", "revenue", "total amount"]
   rule: "Gross Revenue is the SUM(total_amount) of all orders with status = 'Delivered'."
 
 Repeat Purchase Rate:
   aliases: ["repeat purchase rate", "returning customer rate"]
-  rule: "Repeat Purchase Rate is (Count of customers with > 1 order) / (Total count of customers)."
+  rule: "Repeat Purchase Rate is (Count of customers with > 1 order * 1.0) / (Total count of customers). Multiply by 1.0 to prevent integer division in SQLite."
 
 Top Product:
   aliases: ["top product", "best seller", "best selling product"]
