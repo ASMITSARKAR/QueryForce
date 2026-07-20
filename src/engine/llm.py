@@ -32,6 +32,7 @@ async def generate_sql_only(prompt: str, schema_context: str, retry_context: str
         "You are an expert SQLite SQL generator. "
         "Your only job is to write a syntactically correct SQLite query that answers the user's question based on the provided schema. "
         "Do NOT use MySQL, PostgreSQL, or SQL Server specific functions. Stick strictly to SQLite. "
+        "IMPORTANT: SQLite is case-sensitive. When doing string equality comparisons, ALWAYS use COLLATE NOCASE or LOWER() to ensure it matches regardless of casing (e.g. WHERE status = 'cancelled' COLLATE NOCASE). "
         "Do NOT include any explanatory text before or after the SQL. "
         "Output ONLY the SQL code."
     )
