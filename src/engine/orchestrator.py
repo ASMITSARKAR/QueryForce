@@ -42,7 +42,19 @@ async def execute_pipeline_with_retry(user_question: str) -> dict:
             secure_sql = validate_and_format_sql(sql)
             
             # 5. Database Execution
-            results = await execute_readonly_query(secure_sql)
+            results_generator = execute_readonly_query(secure_sql)
+            
+            # Fetch the first chunk immediately to catch any execution errors inside the retry loop
+            try:
+                first_chunk = await anext(results_generator)
+            except StopAsyncIteration:
+                first_chunk = []
+                
+            async def streaming_results():
+                if first_chunk:
+                    yield first_chunk
+                async for chunk in results_generator:
+                    yield chunk
             
             latency_ms = (time.time() - start_time) * 1000
             
@@ -58,7 +70,8 @@ async def execute_pipeline_with_retry(user_question: str) -> dict:
             
             return {
                 "sql": secure_sql,
-                "results": results,
+                "results_stream": streaming_results(),
+                "first_chunk": first_chunk,
                 "latency_ms": latency_ms,
                 "retries": attempt,
                 "confidence": max_conf

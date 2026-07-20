@@ -92,7 +92,15 @@ async def synthesize_results(prompt: str, sql: str, results: list[dict]) -> str:
         max_tokens=256
     )
     
-    return response.choices[0].message.content.strip()
+    answer = response.choices[0].message.content.strip()
+    
+    # Egress Text Guardrails
+    guardrail_pattern = re.compile(r"((?:id|name|status|total_amount)\s*\(\s*(?:integer|text|varchar|real|float)\s*\))|CREATE\s+TABLE|ALTER\s+TABLE", re.IGNORECASE)
+    if guardrail_pattern.search(answer):
+        from src.engine.errors import SecurityViolationError
+        raise SecurityViolationError("Egress Guardrail Blocked: Schema leakage detected in final output.")
+        
+    return answer
 
 if __name__ == "__main__":
     import asyncio

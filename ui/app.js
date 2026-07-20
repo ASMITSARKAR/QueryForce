@@ -216,6 +216,7 @@ DOM.form.addEventListener('submit', async (e) => {
     const bubble = createAiMessageBubble();
     
     // Reset side panels
+    currentResults = [];
     DOM.sqlOutput.textContent = "Pipeline activated...";
     DOM.badges.classList.add('opacity-0');
     DOM.badges.classList.add('hidden');
@@ -237,29 +238,36 @@ DOM.form.addEventListener('submit', async (e) => {
             if (event === 'status') {
                 bubble.statusText.textContent = data.msg;
             } 
-            else if (event === 'data') {
-                DOM.sqlOutput.innerHTML = highlightSql(data.sql);
-                
-                // Badges
-                DOM.badges.classList.remove('hidden');
-                setTimeout(() => DOM.badges.classList.remove('opacity-0'), 50);
-                
-                DOM.badgeAst.textContent = "VALID";
-                DOM.badgeAst.className = "px-2.5 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.1)]";
-                
-                const confPct = Math.round(data.confidence * 100);
-                DOM.badgeConf.textContent = `RAG ${confPct}%`;
-                if (confPct < 20) {
-                    DOM.badgeConf.className = "px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase bg-amber-500/20 text-amber-500 border border-amber-500/30";
-                } else {
-                    DOM.badgeConf.className = "px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase bg-blue-500/20 text-blue-400 border border-blue-500/30";
+            else if (event === 'data_chunk') {
+                if (data.sql && DOM.sqlOutput.textContent === "Pipeline activated...") {
+                    DOM.sqlOutput.innerHTML = highlightSql(data.sql);
+                    
+                    // Badges
+                    DOM.badges.classList.remove('hidden');
+                    setTimeout(() => DOM.badges.classList.remove('opacity-0'), 50);
+                    
+                    DOM.badgeAst.textContent = "VALID";
+                    DOM.badgeAst.className = "px-2.5 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.1)]";
+                    
+                    const confPct = Math.round(data.confidence * 100);
+                    DOM.badgeConf.textContent = `RAG ${confPct}%`;
+                    if (confPct < 20) {
+                        DOM.badgeConf.className = "px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase bg-amber-500/20 text-amber-500 border border-amber-500/30";
+                    } else {
+                        DOM.badgeConf.className = "px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase bg-blue-500/20 text-blue-400 border border-blue-500/30";
+                    }
+                    
+                    if (data.retries > 0) {
+                        bubble.statusText.textContent = `Auto-corrected syntax after ${data.retries} retries...`;
+                    }
                 }
                 
-                if (data.retries > 0) {
-                    bubble.statusText.textContent = `Auto-corrected syntax after ${data.retries} retries...`;
+                if (data.results && data.results.length > 0) {
+                    currentResults = currentResults.concat(data.results);
+                    renderTable(currentResults);
+                } else if (currentResults.length === 0) {
+                    renderTable([]); // Force empty state render
                 }
-                
-                renderTable(data.results);
             }
             else if (event === 'complete') {
                 bubble.statusText.remove();

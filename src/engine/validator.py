@@ -34,9 +34,30 @@ def validate_and_format_sql(sql: str, enforce_limit: int = 500) -> str:
         offending_type = forbidden_nodes[0].__class__.__name__
         raise SecurityViolationError(f"Security violation: Found forbidden command type '{offending_type}'. Only SELECT is allowed.")
 
-    # 2. Enforce LIMIT to prevent flooding the terminal or memory
-    if not parsed.args.get("limit"):
+    ALLOWED_TABLES = {"customers", "orders", "order_items", "products", "reviews"}
+    for table_node in parsed.find_all(exp.Table):
+        if table_node.name.lower() not in ALLOWED_TABLES:
+            raise SecurityViolationError(f"Security violation: Table '{table_node.name}' is not in the allowlist or is a system catalog.")
+
+    # 3. Static Join-Condition Validation
+    for join_node in parsed.find_all(exp.Join):
+        on_clause = join_node.args.get("on")
+        if not on_clause:
+            raise SecurityViolationError("Algorithmic Denial of Service Blocked: CROSS JOIN or missing ON clause detected.")
+        if not any(isinstance(node, exp.EQ) for node in on_clause.walk()):
+            raise SecurityViolationError("Algorithmic Denial of Service Blocked: JOIN condition lacks a strict equality (=) comparison.")
+
+    # 4. Enforce LIMIT to prevent unbounded result set exhaustion
+    limit_node = parsed.args.get("limit")
+    if not limit_node:
         parsed = parsed.limit(enforce_limit)
+    else:
+        try:
+            limit_val = int(limit_node.expression.this)
+            if limit_val > enforce_limit:
+                limit_node.set("expression", exp.Literal.number(enforce_limit))
+        except Exception:
+            limit_node.set("expression", exp.Literal.number(enforce_limit))
         
     return parsed.sql(dialect="sqlite")
 

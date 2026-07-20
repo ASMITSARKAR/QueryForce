@@ -71,21 +71,26 @@ async def stream_generator(user_query: str):
         # Execute Pipeline (RAG -> Rules -> LLM -> Validate -> DB)
         result = await execute_pipeline_with_retry(user_query)
         
-        # Event 2: Data (SQL + Table Results)
-        data_payload = {
+        # Event 2: Data Chunk Streaming
+        metadata_payload = {
             "sql": result["sql"],
-            "results": result["results"],
             "latency_ms": result["latency_ms"],
             "confidence": result["confidence"],
             "retries": result["retries"]
         }
-        yield f"event: data\ndata: {json.dumps(data_payload)}\n\n"
+        
+        async for chunk in result["results_stream"]:
+            data_payload = {
+                "results": chunk,
+                **metadata_payload
+            }
+            yield f"event: data_chunk\ndata: {json.dumps(data_payload)}\n\n"
         
         # Event 3: Status (Synthesizing)
         yield f"event: status\ndata: {json.dumps({'step': 'llm', 'msg': 'Synthesizing final answer...'})}\n\n"
         
         # Synthesize Answer (using the faster 8b model)
-        answer = await synthesize_results(user_query, result["sql"], result["results"])
+        answer = await synthesize_results(user_query, result["sql"], result["first_chunk"])
         
         # Event 4: Complete
         yield f"event: complete\ndata: {json.dumps({'answer': answer})}\n\n"
