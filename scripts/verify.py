@@ -1,21 +1,8 @@
-import os
-import logging
-import warnings
+from src.utils import suppress_chromadb_telemetry
+suppress_chromadb_telemetry()
+
 import asyncio
 import sys
-
-# Silence ChromaDB telemetry warnings
-os.environ["CHROMA_TELEMETRY"] = "False"
-os.environ["ANONYMIZED_TELEMETRY"] = "False"
-logging.getLogger("chromadb").setLevel(logging.CRITICAL)
-logging.getLogger("chromadb.telemetry.product.posthog").setLevel(logging.CRITICAL)
-logging.getLogger("posthog").setLevel(logging.CRITICAL)
-warnings.filterwarnings("ignore", message=".*telemetry.*")
-try:
-    import posthog
-    posthog.capture = lambda *args, **kwargs: None
-except ImportError:
-    pass
 
 from src.engine.orchestrator import execute_pipeline_with_retry
 from src.engine.errors import SecurityViolationError

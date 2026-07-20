@@ -3,14 +3,21 @@ import aiosqlite
 from pathlib import Path
 from src.config import settings
 
+_db_initialized = False
+
 async def get_connection():
+    global _db_initialized
     db_path = Path(settings.TELEMETRY_DB_PATH)
     db_path.parent.mkdir(parents=True, exist_ok=True)
     
     conn = await aiosqlite.connect(db_path)
-    # T3 Fix: Enable WAL mode for concurrent SSE streams to prevent DB locking
-    await conn.execute("PRAGMA journal_mode = WAL;")
-    await conn.execute("PRAGMA synchronous = NORMAL;")
+
+    # Only set WAL mode once per process lifetime — it persists on disk
+    if not _db_initialized:
+        await conn.execute("PRAGMA journal_mode = WAL;")
+        await conn.execute("PRAGMA synchronous = NORMAL;")
+        _db_initialized = True
+
     return conn
 
 async def init_telemetry_db():

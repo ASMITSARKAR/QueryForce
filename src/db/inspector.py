@@ -9,27 +9,29 @@ async def get_connection():
 
 async def get_full_schema() -> dict[str, dict]:
     conn = await get_connection()
-    conn.row_factory = aiosqlite.Row
-    
-    # Get all tables
-    cursor = await conn.execute("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
-    tables = await cursor.fetchall()
-    
-    schema = {}
-    for table in tables:
-        table_name = table["name"]
-        ddl = table["sql"]
+    try:
+        conn.row_factory = aiosqlite.Row
         
-        # Get foreign keys
-        fk_cursor = await conn.execute(f"PRAGMA foreign_key_list({table_name})")
-        fks = await fk_cursor.fetchall()
+        # Get all tables
+        cursor = await conn.execute("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
+        tables = await cursor.fetchall()
         
-        schema[table_name] = {
-            "ddl": ddl,
-            "foreign_keys": [dict(fk) for fk in fks]
-        }
+        schema = {}
+        for table in tables:
+            table_name = table["name"]
+            ddl = table["sql"]
+            
+            # Get foreign keys
+            fk_cursor = await conn.execute(f"PRAGMA foreign_key_list({table_name})")
+            fks = await fk_cursor.fetchall()
+            
+            schema[table_name] = {
+                "ddl": ddl,
+                "foreign_keys": [dict(fk) for fk in fks]
+            }
+    finally:
+        await conn.close()
         
-    await conn.close()
     return schema
 
 async def format_schema_markdown() -> str:

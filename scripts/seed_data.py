@@ -26,6 +26,10 @@ def seed_database(reset: bool = False):
     cursor.execute("PRAGMA foreign_keys = ON;")
     
     if reset:
+        confirm = input("WARNING: This will DROP all tables and re-seed. Continue? (y/N): ").strip().lower()
+        if confirm != 'y':
+            print("Aborted.")
+            return
         print("Resetting database...")
         tables = ["reviews", "order_items", "orders", "products", "customers"]
         for table in tables:

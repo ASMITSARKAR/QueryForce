@@ -1,24 +1,5 @@
-import os
-import sys
-import logging
-import warnings
-
-# ── Silence ChromaDB/Posthog telemetry warnings ──────────────────────────
-# ChromaDB's posthog client uses print() directly to stderr, bypassing Python's
-# logging system. We redirect stderr temporarily during import, then restore it.
-os.environ["CHROMA_TELEMETRY"] = "False"
-os.environ["ANONYMIZED_TELEMETRY"] = "False"
-logging.getLogger("chromadb").setLevel(logging.CRITICAL)
-logging.getLogger("chromadb.telemetry.product.posthog").setLevel(logging.CRITICAL)
-logging.getLogger("posthog").setLevel(logging.CRITICAL)
-warnings.filterwarnings("ignore", message=".*telemetry.*")
-
-# Monkey-patch posthog.capture to silently do nothing
-try:
-    import posthog
-    posthog.capture = lambda *args, **kwargs: None
-except ImportError:
-    pass
+from src.utils import suppress_chromadb_telemetry
+suppress_chromadb_telemetry()
 
 import asyncio
 import time
@@ -27,6 +8,7 @@ from tabulate import tabulate
 from src.rag.rules import inject_business_rules
 from src.rag.router import route_relevant_schemas
 from src.engine.llm import generate_sql_only
+from src.engine.orchestrator import execute_pipeline_with_retry
 from src.engine.validator import validate_and_format_sql
 from src.db.executor import execute_readonly_query
 from src.db.telemetry import log_execution_metric, init_telemetry_db

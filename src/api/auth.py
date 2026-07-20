@@ -9,5 +9,5 @@ async def verify_api_key(x_api_key: str = Header(..., alias="X-API-Key")):
     """
     expected_key = settings.QUERYFORCE_API_KEY.get_secret_value()
     if x_api_key != expected_key:
-        raise HTTPException(status_code=403, detail="Invalid or missing API key.")
+        raise HTTPException(status_code=401, detail="Invalid or missing API key.")
     return x_api_key

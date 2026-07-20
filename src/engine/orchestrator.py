@@ -29,9 +29,11 @@ async def execute_pipeline_with_retry(user_question: str) -> dict:
         
     retry_context = ""
     last_error = None
+    sql = None  # Track sql across attempts to avoid fragile locals() check
     
-    # Retry Loop
-    for attempt in range(settings.MAX_RETRIES):
+    # Retry Loop: 1 initial attempt + MAX_RETRIES retries
+    max_attempts = settings.MAX_RETRIES + 1
+    for attempt in range(max_attempts):
         try:
             # 3. LLM Generation
             sql = await generate_sql_only(enriched_query, schema_context, retry_context)
@@ -67,7 +69,7 @@ async def execute_pipeline_with_retry(user_question: str) -> dict:
             latency_ms = (time.time() - start_time) * 1000
             await log_execution_metric(
                 prompt=user_question,
-                sql=sql if 'sql' in locals() else None,
+                sql=sql,
                 ast_status="BLOCKED",
                 retries=attempt,
                 latency_ms=latency_ms,
@@ -91,4 +93,4 @@ async def execute_pipeline_with_retry(user_question: str) -> dict:
         success=False,
         error_trace=str(last_error)[:200]
     )
-    raise QueryExecutionError(f"Failed after {settings.MAX_RETRIES} attempts. Last error: {last_error}")
+    raise QueryExecutionError(f"Failed after {max_attempts} attempts ({settings.MAX_RETRIES} retries). Last error: {last_error}")

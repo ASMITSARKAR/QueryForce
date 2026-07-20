@@ -8,7 +8,7 @@
 async function fetchSSE(url, options, onMessage) {
     const response = await fetch(url, options);
     if (!response.ok) {
-        if (response.status === 403 || response.status === 422) {
+        if (response.status === 401 || response.status === 422) {
             localStorage.removeItem('qf_api_key');
             document.getElementById('auth-modal').classList.remove('hidden');
             throw new Error("Invalid API Key");
@@ -144,9 +144,14 @@ function createAiMessageBubble() {
 }
 
 // SQL Syntax Highlighting (very basic client-side coloring)
+function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function highlightSql(sql) {
+    const escaped = escapeHtml(sql);
     const keywords = ['SELECT', 'FROM', 'WHERE', 'GROUP BY', 'ORDER BY', 'LIMIT', 'JOIN', 'LEFT', 'INNER', 'ON', 'AS', 'AND', 'OR', 'COUNT', 'SUM', 'AVG', 'MAX', 'MIN'];
-    let colored = sql;
+    let colored = escaped;
     keywords.forEach(kw => {
         const regex = new RegExp(`\\b${kw}\\b`, 'gi');
         colored = colored.replace(regex, `<span class="text-blue-400 font-semibold">$&</span>`);
@@ -269,7 +274,7 @@ DOM.form.addEventListener('submit', async (e) => {
                 
                 const errEl = document.createElement('div');
                 errEl.className = "text-rose-400 bg-rose-950/30 border border-rose-900/40 px-5 py-4 rounded-2xl text-base font-medium shadow-inner flex items-center gap-3";
-                errEl.innerHTML = `<svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg> <span>${data.msg.replace(/</g, '&lt;')}</span>`;
+                errEl.innerHTML = `<svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg> <span>${escapeHtml(data.msg)}</span>`;
                 bubble.contentBox.appendChild(errEl);
                 
                 DOM.sqlOutput.textContent = "Execution halted due to error.";

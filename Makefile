@@ -11,7 +11,7 @@ ingest-rag:
 	.venv/Scripts/python scripts/ingest_schema.py
 
 run:
-	.venv/Scripts/uvicorn src.app:app --reload
+	.venv/Scripts/uvicorn src.api.server:app --reload
 
 verify:
 	.venv/Scripts/python scripts/verify.py
